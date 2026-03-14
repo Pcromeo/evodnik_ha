@@ -73,13 +73,6 @@ async def async_setup_entry(
             device_number=device_number,
             device_name=device_name,
         ),
-        EvodnikSimulationButton(
-            coordinator=coordinator,
-            entry=entry,
-            device_id=device_id,
-            device_number=device_number,
-            device_name=device_name,
-        ),
     ]
 
     async_add_entities(entities)
@@ -253,61 +246,3 @@ class EvodnikVacationButton(EvodnikBaseButton):
             "",
             "HA vacation",
         )
-
-
-class EvodnikSimulationButton(EvodnikBaseButton):
-    def __init__(
-        self,
-        coordinator: EvodnikDataUpdateCoordinator,
-        entry: ConfigEntry,
-        device_id: int,
-        device_number: Any,
-        device_name: str,
-    ) -> None:
-        super().__init__(coordinator, entry, device_id, device_number, device_name)
-        self._attr_name = "Spustit učení"
-        self._attr_icon = "mdi:school"
-
-    @property
-    def unique_id(self) -> str:
-        return f"{self._entry.entry_id}_{self._device_number}_simulation_activate"
-
-    async def async_press(self) -> None:
-        username, password = self._get_credentials()
-
-        simulation_to = self._simulation_default_to()
-
-        await self.hass.async_add_executor_job(
-            self._call_action,
-            username,
-            password,
-            simulation_to,
-        )
-
-        await self.coordinator.async_request_refresh()
-
-    def _call_action(
-        self,
-        username: str,
-        password: str,
-        simulation_to: str,
-    ) -> None:
-        client = self.coordinator.client
-        client.login(username, password)
-        client.set_simulation(
-            self._device_id,
-            int(self._device_number),
-            simulation_to,
-            "ha_uceni",
-        )
-
-    def _simulation_default_to(self) -> str:
-        dt = datetime.now() + timedelta(days=14)
-
-        minute = ((dt.minute + 9) // 10) * 10
-        if minute == 60:
-            dt = dt.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
-        else:
-            dt = dt.replace(minute=minute, second=0, microsecond=0)
-
-        return f"{dt.day}.{dt.month}.{dt.year} {dt.hour:02d}:{dt.minute:02d}"
