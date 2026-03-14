@@ -68,9 +68,9 @@ class EvodnikClient:
         url = f"{BASE}{path}"
         body = json.dumps(payload, ensure_ascii=False)
 
-        _LOGGER.warning("eVodnik API CALL -> %s", url)
-        _LOGGER.warning("eVodnik PAYLOAD -> %s", payload)
-        _LOGGER.warning("eVodnik RAW BODY -> %s", body)
+        _LOGGER.debug("eVodnik API CALL -> %s", url)
+        _LOGGER.debug("eVodnik PAYLOAD -> %s", payload)
+        _LOGGER.debug("eVodnik RAW BODY -> %s", body)
 
         r = self._session.post(
             url,
@@ -84,15 +84,15 @@ class EvodnikClient:
             },
         )
 
-        _LOGGER.warning("eVodnik RESPONSE STATUS -> %s", r.status_code)
-        _LOGGER.warning("eVodnik RESPONSE HEADERS -> %s", dict(r.headers))
-        _LOGGER.warning("eVodnik RESPONSE TEXT -> %s", r.text)
+        _LOGGER.debug("eVodnik RESPONSE STATUS -> %s", r.status_code)
+        _LOGGER.debug("eVodnik RESPONSE HEADERS -> %s", dict(r.headers))
+        _LOGGER.debug("eVodnik RESPONSE TEXT -> %s", r.text)
 
         try:
             parsed = r.json()
-            _LOGGER.warning("eVodnik RESPONSE JSON -> %s", parsed)
+            _LOGGER.debug("eVodnik RESPONSE JSON -> %s", parsed)
         except Exception:
-            _LOGGER.warning("eVodnik RESPONSE JSON -> <not json>")
+            _LOGGER.debug("eVodnik RESPONSE JSON -> <not json>")
 
         r.raise_for_status()
         return r.json() if r.text else None
