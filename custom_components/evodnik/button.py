@@ -11,7 +11,13 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.entity_registry import async_get as async_get_entity_registry
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, CONF_DEVICE_NAME, CONF_DEVICE_ID
+from .const import (
+    DOMAIN,
+    CONF_DEVICE_NAME,
+    CONF_DEVICE_ID,
+    CONF_USERNAME,
+    CONF_PASSWORD,
+)
 from .coordinator import EvodnikDataUpdateCoordinator
 
 
@@ -72,7 +78,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class EvodnikActionButton(CoordinatorEntity[EvodnikDataUpdateCoordinator], ButtonEntity):
+class EvodnikBaseButton(CoordinatorEntity[EvodnikDataUpdateCoordinator], ButtonEntity):
     def __init__(
         self,
         coordinator: EvodnikDataUpdateCoordinator,
@@ -80,24 +86,13 @@ class EvodnikActionButton(CoordinatorEntity[EvodnikDataUpdateCoordinator], Butto
         device_id: int,
         device_number: Any,
         device_name: str,
-        name: str,
-        icon: str,
-        action: str,
     ) -> None:
         super().__init__(coordinator)
         self._entry = entry
         self._device_id = device_id
         self._device_number = device_number
         self._device_name = device_name
-        self._action = action
-
-        self._attr_name = name
-        self._attr_icon = icon
         self._attr_entity_category = EntityCategory.CONFIG
-
-    @property
-    def unique_id(self) -> str:
-        return f"{self._entry.entry_id}_{self._device_number}_{self._action}"
 
     @property
     def device_info(self):
@@ -110,9 +105,35 @@ class EvodnikActionButton(CoordinatorEntity[EvodnikDataUpdateCoordinator], Butto
             "model": f'{hdr.get("Version","")}/{hdr.get("VersionNumber","")}',
         }
 
+    def _get_credentials(self) -> tuple[str, str]:
+        username = self._entry.data[CONF_USERNAME]
+        password = self._entry.data[CONF_PASSWORD]
+        return username, password
+
+
+class EvodnikActionButton(EvodnikBaseButton):
+    def __init__(
+        self,
+        coordinator: EvodnikDataUpdateCoordinator,
+        entry: ConfigEntry,
+        device_id: int,
+        device_number: Any,
+        device_name: str,
+        name: str,
+        icon: str,
+        action: str,
+    ) -> None:
+        super().__init__(coordinator, entry, device_id, device_number, device_name)
+        self._action = action
+        self._attr_name = name
+        self._attr_icon = icon
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._entry.entry_id}_{self._device_number}_{self._action}"
+
     async def async_press(self) -> None:
-        username = self._entry.data["username"]
-        password = self._entry.data["password"]
+        username, password = self._get_credentials()
 
         if self._device_number is None:
             raise ValueError("DeviceNumber missing")
@@ -139,7 +160,7 @@ class EvodnikActionButton(CoordinatorEntity[EvodnikDataUpdateCoordinator], Butto
             raise ValueError(f"Unknown action: {self._action}")
 
 
-class EvodnikVacationButton(CoordinatorEntity[EvodnikDataUpdateCoordinator], ButtonEntity):
+class EvodnikVacationButton(EvodnikBaseButton):
     def __init__(
         self,
         coordinator: EvodnikDataUpdateCoordinator,
@@ -148,34 +169,16 @@ class EvodnikVacationButton(CoordinatorEntity[EvodnikDataUpdateCoordinator], But
         device_number: Any,
         device_name: str,
     ) -> None:
-        super().__init__(coordinator)
-        self._entry = entry
-        self._device_id = device_id
-        self._device_number = device_number
-        self._device_name = device_name
-
+        super().__init__(coordinator, entry, device_id, device_number, device_name)
         self._attr_name = "Aktivovat dovolenou"
         self._attr_icon = "mdi:beach"
-        self._attr_entity_category = EntityCategory.CONFIG
 
     @property
     def unique_id(self) -> str:
         return f"{self._entry.entry_id}_{self._device_number}_vacation_activate"
 
-    @property
-    def device_info(self):
-        hdrs = (self.coordinator.data or {}).get("headers", [])
-        hdr = hdrs[0] if hdrs else {}
-        return {
-            "identifiers": {(DOMAIN, f"{self._device_number}")},
-            "manufacturer": "eVodník",
-            "name": f"eVodník {self._device_name}",
-            "model": f'{hdr.get("Version","")}/{hdr.get("VersionNumber","")}',
-        }
-
     async def async_press(self) -> None:
-        username = self._entry.data["username"]
-        password = self._entry.data["password"]
+        username, password = self._get_credentials()
 
         if self._device_number is None:
             raise ValueError("DeviceNumber missing")
@@ -186,8 +189,7 @@ class EvodnikVacationButton(CoordinatorEntity[EvodnikDataUpdateCoordinator], But
             entity_id = entity_registry.async_get_entity_id("datetime", DOMAIN, unique_id)
             if entity_id:
                 return entity_id
-            entity_id = entity_registry.async_get_entity_id("number", DOMAIN, unique_id)
-            return entity_id
+            return entity_registry.async_get_entity_id("number", DOMAIN, unique_id)
 
         from_entity_id = get_entity_id(f"{self._entry.entry_id}_vacation_from")
         to_entity_id = get_entity_id(f"{self._entry.entry_id}_vacation_to")
