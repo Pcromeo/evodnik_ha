@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import logging
 import re
 import requests
@@ -66,15 +67,19 @@ class EvodnikClient:
 
     def _post_json(self, path: str, payload: Dict[str, Any], device_id: int) -> Any:
         url = f"{BASE}{path}"
+        body = json.dumps(payload, ensure_ascii=False)
 
         _LOGGER.warning("eVodnik API CALL -> %s", url)
         _LOGGER.warning("eVodnik PAYLOAD -> %s", payload)
+        _LOGGER.warning("eVodnik RAW BODY -> %s", body)
 
         r = self._session.post(
             url,
-            json=payload,
+            data=body.encode("utf-8"),
             timeout=30,
             headers={
+                "Accept": "application/json, text/plain, */*",
+                "Content-Type": "application/json;charset=UTF-8",
                 "Origin": BASE,
                 "Referer": f"{BASE}/app/Device/SettingNew/{device_id}",
             },
