@@ -4,6 +4,8 @@ import re
 import requests
 from typing import Any, Dict, List, Optional
 
+_LOGGER = logging.getLogger(__name__)
+
 BASE = "https://servis.evodnik.cz"
 
 HEADERS = {
