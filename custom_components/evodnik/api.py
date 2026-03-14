@@ -85,7 +85,14 @@ class EvodnikClient:
         )
 
         _LOGGER.warning("eVodnik RESPONSE STATUS -> %s", r.status_code)
+        _LOGGER.warning("eVodnik RESPONSE HEADERS -> %s", dict(r.headers))
         _LOGGER.warning("eVodnik RESPONSE TEXT -> %s", r.text)
+
+        try:
+            parsed = r.json()
+            _LOGGER.warning("eVodnik RESPONSE JSON -> %s", parsed)
+        except Exception:
+            _LOGGER.warning("eVodnik RESPONSE JSON -> <not json>")
 
         r.raise_for_status()
         return r.json() if r.text else None
