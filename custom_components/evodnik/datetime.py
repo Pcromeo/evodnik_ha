@@ -32,7 +32,6 @@ async def async_setup_entry(
         [
             EvodnikVacationFrom(entry, device_number, device_name, hdr0, now),
             EvodnikVacationTo(entry, device_number, device_name, hdr0, now + timedelta(days=7)),
-            EvodnikSimulationTo(entry, device_number, device_name, hdr0, now + timedelta(days=7)),
         ]
     )
 
@@ -94,18 +93,5 @@ class EvodnikVacationTo(EvodnikBaseDateTime):
             hdr=hdr,
             name="Dovolená - do",
             unique_suffix="vacation_to",
-            initial_value=initial_value,
-        )
-
-
-class EvodnikSimulationTo(EvodnikBaseDateTime):
-    def __init__(self, entry, device_number, device_name, hdr, initial_value) -> None:
-        super().__init__(
-            entry=entry,
-            device_number=device_number,
-            device_name=device_name,
-            hdr=hdr,
-            name="Učení - do",
-            unique_suffix="simulation_to",
             initial_value=initial_value,
         )
