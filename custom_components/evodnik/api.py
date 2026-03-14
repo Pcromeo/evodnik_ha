@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import re
 import requests
 from typing import Any, Dict, List, Optional
@@ -59,18 +60,27 @@ class EvodnikClient:
 
         raise RuntimeError("Login failed. Check credentials.")
 
-    def _post_json(self, path: str, payload: Dict[str, Any], device_id: int) -> Any:
-        r = self._session.post(
-            f"{BASE}{path}",
-            json=payload,
-            timeout=30,
-            headers={
-                "Origin": BASE,
-                "Referer": f"{BASE}/app/Device/SettingNew/{device_id}",
-            },
-        )
-        r.raise_for_status()
-        return r.json() if r.text else None
+def _post_json(self, path: str, payload: Dict[str, Any], device_id: int) -> Any:
+    url = f"{BASE}{path}"
+
+    _LOGGER.warning("eVodnik API CALL -> %s", url)
+    _LOGGER.warning("eVodnik PAYLOAD -> %s", payload)
+
+    r = self._session.post(
+        url,
+        json=payload,
+        timeout=30,
+        headers={
+            "Origin": BASE,
+            "Referer": f"{BASE}/app/Device/SettingNew/{device_id}",
+        },
+    )
+
+    _LOGGER.warning("eVodnik RESPONSE STATUS -> %s", r.status_code)
+    _LOGGER.warning("eVodnik RESPONSE TEXT -> %s", r.text)
+
+    r.raise_for_status()
+    return r.json() if r.text else None
 
     def get_device_list(self) -> List[Dict[str, Any]]:
         r = self._session.get(f"{BASE}/app/Device/GetDeviceList", timeout=30)
