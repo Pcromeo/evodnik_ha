@@ -241,12 +241,12 @@ class EvodnikVacationButton(EvodnikBaseButton):
         )
 
     def _format_datetime(self, value: str) -> str:
-    dt = datetime.fromisoformat(value)
+        dt = datetime.fromisoformat(value)
 
-    # zaokrouhlení nahoru na celou hodinu
-    if dt.minute != 0 or dt.second != 0 or dt.microsecond != 0:
-        dt = dt.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
-    else:
-        dt = dt.replace(second=0, microsecond=0)
+        # zaokrouhlení nahoru na celou hodinu
+        if dt.minute != 0 or dt.second != 0 or dt.microsecond != 0:
+            dt = dt.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
+        else:
+            dt = dt.replace(second=0, microsecond=0)
 
-    return f"{dt.day}.{dt.month}.{dt.year} {dt.hour:02d}:00"
+        return f"{dt.day}.{dt.month}.{dt.year} {dt.hour:02d}:00"
