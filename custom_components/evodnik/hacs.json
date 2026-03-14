@@ -1,0 +1,7 @@
+{
+  "name": "eVodník",
+  "content_in_root": false,
+  "domains": ["evodnik"],
+  "country": "CZ",
+  "homeassistant": "2024.1.0"
+}
