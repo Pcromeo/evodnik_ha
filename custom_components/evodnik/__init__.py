@@ -7,7 +7,7 @@ from homeassistant.core import HomeAssistant
 from .const import DOMAIN, CONF_CONSUMPTION_UNIT
 from .coordinator import EvodnikDataUpdateCoordinator
 
-PLATFORMS = ["sensor", "button", "number", "datetime", "text"]
+PLATFORMS = ["sensor", "button", "number", "datetime"]
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     coordinator = EvodnikDataUpdateCoordinator(hass, entry)
