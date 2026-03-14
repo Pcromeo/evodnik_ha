@@ -73,6 +73,13 @@ async def async_setup_entry(
             device_number=device_number,
             device_name=device_name,
         ),
+        EvodnikSimulationButton(
+            coordinator=coordinator,
+            entry=entry,
+            device_id=device_id,
+            device_number=device_number,
+            device_name=device_name,
+        ),
     ]
 
     async_add_entities(entities)
@@ -109,6 +116,17 @@ class EvodnikBaseButton(CoordinatorEntity[EvodnikDataUpdateCoordinator], ButtonE
         username = self._entry.data[CONF_USERNAME]
         password = self._entry.data[CONF_PASSWORD]
         return username, password
+
+    def _format_datetime(self, value: str) -> str:
+        dt = datetime.fromisoformat(value)
+
+        # zaokrouhlení nahoru na celou hodinu
+        if dt.minute != 0 or dt.second != 0 or dt.microsecond != 0:
+            dt = dt.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
+        else:
+            dt = dt.replace(second=0, microsecond=0)
+
+        return f"{dt.day}.{dt.month}.{dt.year} {dt.hour:02d}:00"
 
 
 class EvodnikActionButton(EvodnikBaseButton):
@@ -240,13 +258,65 @@ class EvodnikVacationButton(EvodnikBaseButton):
             "HA vacation",
         )
 
-    def _format_datetime(self, value: str) -> str:
-        dt = datetime.fromisoformat(value)
 
-        # zaokrouhlení nahoru na celou hodinu
-        if dt.minute != 0 or dt.second != 0 or dt.microsecond != 0:
-            dt = dt.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
-        else:
-            dt = dt.replace(second=0, microsecond=0)
+class EvodnikSimulationButton(EvodnikBaseButton):
+    def __init__(
+        self,
+        coordinator: EvodnikDataUpdateCoordinator,
+        entry: ConfigEntry,
+        device_id: int,
+        device_number: Any,
+        device_name: str,
+    ) -> None:
+        super().__init__(coordinator, entry, device_id, device_number, device_name)
+        self._attr_name = "Spustit učení"
+        self._attr_icon = "mdi:school"
 
-        return f"{dt.day}.{dt.month}.{dt.year} {dt.hour:02d}:00"
+    @property
+    def unique_id(self) -> str:
+        return f"{self._entry.entry_id}_{self._device_number}_simulation_activate"
+
+    async def async_press(self) -> None:
+        username, password = self._get_credentials()
+
+        if self._device_number is None:
+            raise ValueError("DeviceNumber missing")
+
+        entity_registry = async_get_entity_registry(self.hass)
+        simulation_entity_id = entity_registry.async_get_entity_id(
+            "datetime", DOMAIN, f"{self._entry.entry_id}_simulation_to"
+        )
+
+        if not simulation_entity_id:
+            raise ValueError("Simulation helper entity not found")
+
+        simulation_state = self.hass.states.get(simulation_entity_id)
+
+        if not simulation_state:
+            raise ValueError("Simulation helper state not found")
+
+        simulation_to = self._format_datetime(simulation_state.state)
+
+        await self.hass.async_add_executor_job(
+            self._call_action,
+            username,
+            password,
+            simulation_to,
+        )
+
+        await self.coordinator.async_request_refresh()
+
+    def _call_action(
+        self,
+        username: str,
+        password: str,
+        simulation_to: str,
+    ) -> None:
+        client = self.coordinator.client
+        client.login(username, password)
+        client.set_simulation(
+            self._device_id,
+            int(self._device_number),
+            simulation_to,
+            "Učení",
+        )
