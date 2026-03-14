@@ -1,4 +1,4 @@
-# eVodník pro Home Assistant
+# eVodník control pro Home Assistant
 
 Integrace umožňuje přihlásit se do VTS **https://servis.evodnik.cz** a načítat stav zařízení eVodník (průtoky, režimy, ventil, apod.).
 Součástí je i **kumulativní vodoměr** vhodný pro **Energy Dashboard** v Home Assistantu.
