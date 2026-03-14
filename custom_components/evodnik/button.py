@@ -298,7 +298,7 @@ class EvodnikSimulationButton(EvodnikBaseButton):
             self._device_id,
             int(self._device_number),
             simulation_to,
-            "učení",
+            "ha_uceni",
         )
 
     def _simulation_default_to(self) -> str:
