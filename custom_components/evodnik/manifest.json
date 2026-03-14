@@ -2,11 +2,11 @@
   "domain": "evodnik",
   "name": "eVodník",
   "codeowners": [
-    "@AidenShaw2020"
+    "@Pcromeo"
   ],
-  "documentation": "https://github.com/AidenShaw2020/evodnik_cloud_ha",
-  "issue_tracker": "https://github.com/AidenShaw2020/evodnik_cloud_ha/issues",
-  "version": "0.2.26",
+  "documentation": "https://github.com/Pcromeo/evodnik_ha",
+  "issue_tracker": "https://github.com/Pcromeo/evodnik_ha/issues",
+  "version": "0.3.0",
   "iot_class": "cloud_polling",
   "requirements": [
     "requests>=2.28.0"
