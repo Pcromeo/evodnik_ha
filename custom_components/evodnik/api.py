@@ -18,6 +18,7 @@ LOGIN_PATHS = [
     "/app/Account/Login",
 ]
 
+
 def _find_anti_forgery_token(html: str) -> Optional[str]:
     m = re.search(r'name="__RequestVerificationToken"[^>]*value="([^"]+)"', html, re.IGNORECASE)
     return m.group(1) if m else None
@@ -54,33 +55,36 @@ class EvodnikClient:
 
             rp = self._session.post(url, data=data, headers=headers, timeout=30, allow_redirects=True)
 
-            auth_cookie = next((c for c in self._session.cookies if ".AspNet" in c.name and "ApplicationCookie" in c.name), None)
+            auth_cookie = next(
+                (c for c in self._session.cookies if ".AspNet" in c.name and "ApplicationCookie" in c.name),
+                None,
+            )
             if auth_cookie and rp.status_code in (200, 302):
                 return
 
         raise RuntimeError("Login failed. Check credentials.")
 
-def _post_json(self, path: str, payload: Dict[str, Any], device_id: int) -> Any:
-    url = f"{BASE}{path}"
+    def _post_json(self, path: str, payload: Dict[str, Any], device_id: int) -> Any:
+        url = f"{BASE}{path}"
 
-    _LOGGER.warning("eVodnik API CALL -> %s", url)
-    _LOGGER.warning("eVodnik PAYLOAD -> %s", payload)
+        _LOGGER.warning("eVodnik API CALL -> %s", url)
+        _LOGGER.warning("eVodnik PAYLOAD -> %s", payload)
 
-    r = self._session.post(
-        url,
-        json=payload,
-        timeout=30,
-        headers={
-            "Origin": BASE,
-            "Referer": f"{BASE}/app/Device/SettingNew/{device_id}",
-        },
-    )
+        r = self._session.post(
+            url,
+            json=payload,
+            timeout=30,
+            headers={
+                "Origin": BASE,
+                "Referer": f"{BASE}/app/Device/SettingNew/{device_id}",
+            },
+        )
 
-    _LOGGER.warning("eVodnik RESPONSE STATUS -> %s", r.status_code)
-    _LOGGER.warning("eVodnik RESPONSE TEXT -> %s", r.text)
+        _LOGGER.warning("eVodnik RESPONSE STATUS -> %s", r.status_code)
+        _LOGGER.warning("eVodnik RESPONSE TEXT -> %s", r.text)
 
-    r.raise_for_status()
-    return r.json() if r.text else None
+        r.raise_for_status()
+        return r.json() if r.text else None
 
     def get_device_list(self) -> List[Dict[str, Any]]:
         r = self._session.get(f"{BASE}/app/Device/GetDeviceList", timeout=30)
