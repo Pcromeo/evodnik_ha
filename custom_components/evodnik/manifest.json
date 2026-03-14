@@ -6,7 +6,7 @@
   ],
   "documentation": "https://github.com/Pcromeo/evodnik_ha",
   "issue_tracker": "https://github.com/Pcromeo/evodnik_ha/issues",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "iot_class": "cloud_polling",
   "requirements": [
     "requests>=2.28.0"
