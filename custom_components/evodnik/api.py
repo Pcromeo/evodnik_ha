@@ -15,8 +15,7 @@ HEADERS = {
 }
 
 LOGIN_PATHS = [
-    "/Account/Login",
-    "/app/Account/Login",
+    "/",
 ]
 
 
