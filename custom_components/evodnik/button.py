@@ -117,10 +117,9 @@ class EvodnikBaseButton(CoordinatorEntity[EvodnikDataUpdateCoordinator], ButtonE
         password = self._entry.data[CONF_PASSWORD]
         return username, password
 
-    def _format_datetime(self, value: str) -> str:
+    def _format_datetime_hour(self, value: str) -> str:
         dt = datetime.fromisoformat(value)
 
-        # zaokrouhlení nahoru na celou hodinu
         if dt.minute != 0 or dt.second != 0 or dt.microsecond != 0:
             dt = dt.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
         else:
@@ -198,9 +197,6 @@ class EvodnikVacationButton(EvodnikBaseButton):
     async def async_press(self) -> None:
         username, password = self._get_credentials()
 
-        if self._device_number is None:
-            raise ValueError("DeviceNumber missing")
-
         entity_registry = async_get_entity_registry(self.hass)
 
         def get_entity_id(unique_id: str) -> str | None:
@@ -223,8 +219,8 @@ class EvodnikVacationButton(EvodnikBaseButton):
         if not from_state or not to_state or not limit_state:
             raise ValueError("Vacation helper states not found")
 
-        vacation_from = self._format_datetime(from_state.state)
-        vacation_to = self._format_datetime(to_state.state)
+        vacation_from = self._format_datetime_hour(from_state.state)
+        vacation_to = self._format_datetime_hour(to_state.state)
         limit1 = str(int(float(limit_state.state)))
 
         await self.hass.async_add_executor_job(
@@ -279,23 +275,7 @@ class EvodnikSimulationButton(EvodnikBaseButton):
     async def async_press(self) -> None:
         username, password = self._get_credentials()
 
-        if self._device_number is None:
-            raise ValueError("DeviceNumber missing")
-
-        entity_registry = async_get_entity_registry(self.hass)
-        simulation_entity_id = entity_registry.async_get_entity_id(
-            "datetime", DOMAIN, f"{self._entry.entry_id}_simulation_to"
-        )
-
-        if not simulation_entity_id:
-            raise ValueError("Simulation helper entity not found")
-
-        simulation_state = self.hass.states.get(simulation_entity_id)
-
-        if not simulation_state:
-            raise ValueError("Simulation helper state not found")
-
-        simulation_to = self._format_datetime(simulation_state.state)
+        simulation_to = self._simulation_default_to()
 
         await self.hass.async_add_executor_job(
             self._call_action,
@@ -318,5 +298,16 @@ class EvodnikSimulationButton(EvodnikBaseButton):
             self._device_id,
             int(self._device_number),
             simulation_to,
-            "Učení",
+            "učení",
         )
+
+    def _simulation_default_to(self) -> str:
+        dt = datetime.now() + timedelta(days=14)
+
+        minute = ((dt.minute + 9) // 10) * 10
+        if minute == 60:
+            dt = dt.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
+        else:
+            dt = dt.replace(minute=minute, second=0, microsecond=0)
+
+        return f"{dt.day}.{dt.month}.{dt.year} {dt.hour:02d}:{dt.minute:02d}"
