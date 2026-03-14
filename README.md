@@ -56,7 +56,7 @@ Prosím počítej s tím, že:
 1. Otevřete **HACS → Integrations**.
 2. Klikněte na **⋯ (tři tečky) → Custom repositories**.
 3. Přidejte adresu repozitáře a zvolte **Category: Integration**.  
-   - sem vlož adresu svého forku
+   - (https://github.com/Pcromeo/evodnik_ha/)
 4. V HACS vyhledejte **eVodník** → **Install**.
 5. **Restartujte** Home Assistant.
 6. Přejděte do **Settings → Devices & Services → Add Integration** a vyhledejte **eVodník**.
